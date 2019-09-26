@@ -9,7 +9,7 @@ import (
 
 	"github.com/spf13/pflag"
 
-	"code.byted.org/tce/orchestration/pkg/version"
+	"github.com/zoumo/proxypool/pkg/version"
 )
 
 type versionValue int
