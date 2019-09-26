@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "github.com/mwitkow/go-proto-validators/validator.proto";
+import "pkg/apis/v2/types.proto";
+import "google/rpc/status.proto";
+import "google/protobuf/empty.proto";
+
+package github.com.zoumo.proxypool.pkg.apis.v2;
+option go_package = "github.com/zoumo/proxypool/pkg/apis/v2;v2";
+
+option (gogoproto.goproto_getters_all) = false;
+option (gogoproto.goproto_enum_prefix_all) = false;
+option (gogoproto.goproto_registration) = true;
+
+service Validator {
+    rpc ValidateStream(stream ValidateStreamRequest)
+        returns (stream ValidateStreamResponse) {}
+}
+
+message ValidateStreamRequest {
+    oneof request_union {
+        option (validator.oneof) = {
+            required: true
+        };
+        ValidateStreamCreateRequest createRequest = 1;
+        ValidateStreamCancelRequest cancelRequest = 2;
+        ProxyValidateResponse proxyResponse = 3;
+    }
+}
+
+message ValidateStreamCreateRequest {
+    string name = 1 [(validator.field) = { string_not_empty: true }];
+}
+
+message ValidateStreamCancelRequest {
+    string name = 1 [(validator.field) = { string_not_empty: true }];
+}
+
+message ProxyValidateResponse {
+    github.com.zoumo.proxypool.pkg.apis.v2.Proxy proxy = 1
+        [(validator.field) = { msg_exists: true }];
+}
+
+message ValidateStreamResponse {
+    int64 streamID = 1;
+    oneof response_union {
+        option (validator.oneof) = {
+            required: true
+        };
+        ValidateStreamCreateResponse createResponse = 2;
+        ValidateStreamCancelResponse cancelResponse = 3;
+        ProxyValidateRequest proxyRequest = 4;
+    }
+}
+
+message ValidateStreamCreateResponse {
+    string name = 1 [(validator.field) = { string_not_empty: true }];
+    bool created = 2;
+    google.rpc.Status status = 3;
+}
+
+message ValidateStreamCancelResponse {
+    string name = 1 [(validator.field) = { string_not_empty: true }];
+    bool canceled = 2;
+    google.rpc.Status status = 3;
+}
+
+message ProxyValidateRequest {
+    string validator = 1 [(validator.field) = { string_not_empty: true }];
+    string proxyAddr = 2 [(validator.field) = { string_not_empty: true }];
+}
+
+service Pool {
+    rpc GetProxy(GetProxyRequest)
+        returns (github.com.zoumo.proxypool.pkg.apis.v2.Proxy) {}
+    rpc DeleteProxy(DeleteProxyRequest) returns (google.protobuf.Empty) {}
+}
+
+message GetProxyRequest {
+    string validator = 1 [(validator.field) = { string_not_empty: true }];
+}
+
+message DeleteProxyRequest {
+    github.com.zoumo.proxypool.pkg.apis.v2.Proxy proxy = 1
+        [(validator.field) = { msg_exists: true }];
+}

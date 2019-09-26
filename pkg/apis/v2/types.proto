@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+import "github.com/mwitkow/go-proto-validators/validator.proto";
+
+package github.com.zoumo.proxypool.pkg.apis.v2;
+option go_package = "github.com/zoumo/proxypool/pkg/apis/v2;v2";
+
+option (gogoproto.goproto_getters_all) = false;
+option (gogoproto.goproto_enum_prefix_all) = false;
+option (gogoproto.goproto_registration) = true;
+
+message Proxy {
+    option (gogoproto.goproto_unrecognized) = false; // drop unrecognized field to make proxy hashable
+    string validator = 1 [(validator.field) = {string_not_empty: true}];
+    string addr = 2 [(validator.field) = {string_not_empty: true}];
+    string createTime = 3;
+    int32 expiredSeconds = 4;
+}

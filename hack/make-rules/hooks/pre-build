@@ -1,0 +1,22 @@
+#!/bin/bash
+echo "generate protobuf and grpc"
+
+go mod vendor
+
+PROTOCFLAGS="-I=. \
+-I=${REPO_ROOT}/vendor \
+-I=${GOPATH}/src \
+-I=${GOPATH}/src/github.com/gogo/googleapis \
+--gofast_out=plugins=grpc,paths=source_relative,\
+Mgoogle/rpc/status.proto=github.com/gogo/googleapis/google/rpc,\
+Mgoogle/protobuf/empty.proto=github.com/gogo/protobuf/types,\
+Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types,:. \
+--govalidators_out=gogoimport=true,paths=source_relative,\
+Mgoogle/rpc/status.proto=github.com/gogo/googleapis/google/rpc,\
+Mgoogle/protobuf/empty.proto=github.com/gogo/protobuf/types,\
+Mgoogle/protobuf/timestamp.proto=github.com/gogo/protobuf/types,:."
+
+protoc ${PROTOCFLAGS} pkg/apis/v2/*.proto
+goimports -w pkg/apis/v2/*.pb.go
+
+rm -rf vendor
